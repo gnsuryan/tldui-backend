@@ -8,9 +8,14 @@ getProperty = (pty) => {return prop.get(pty);}
 
 const port=getProperty('server.port');
 
-//get all system config
+//get system config for given release, team and risk category
   app.get('/configs/:release/:team/:riskcategory', function (req, res) {
   processRequest(req, res,'systemconfig');
+})
+
+//get all system config
+  app.get('/configs', function (req, res) {
+  processRequest(req, res,'allsystemconfig');
 })
 
 //get all releases
@@ -18,9 +23,14 @@ const port=getProperty('server.port');
   processRequest(req, res,'releases');
 })
 
-//get all runtypes 
+//get all runtypes
   app.get('/runtypes', function (req, res) {
   processRequest(req, res,'runtypes');
+})
+
+//get all runtypes for given release
+app.get('/runtypes/:release', function (req, res) {
+  processRequest(req, res,'runtypesForRelease');
 })
 
 
@@ -39,9 +49,19 @@ const port=getProperty('server.port');
   processRequest(req, res,'riskcategories');
 })
 
+//get all config tool release mappings
+  app.get('/config_tool_release_mappings', function (req, res) {
+  processRequest(req, res,'config_tool_release_mappings');
+})
+
   //get runtype regression report 
   app.get('/runtype_regression_report/:release/:previousruntype/:currentruntype', function (req, res) {
   processRequest(req, res,'runtype_regression_report');
+})
+
+  //get runtype regression report data
+  app.get('/regression_report_data', function (req, res) {
+  processRequest(req, res,'regression_report_data');
 })
 
 processRequest = async function (req, res,apiName) {
@@ -71,6 +91,12 @@ function handleParamsForRunTypeRegressionReport(req,map)
 	map.set("previousRunType",previousRunType);
 }
 
+function handleParamsForRunTypesForRelease(req,map)
+{
+	const release = req.params.release
+	map.set("release",release);
+}
+
 function getParamMap(req,apiName)
 {
 	let map = new Map();
@@ -84,6 +110,11 @@ function getParamMap(req,apiName)
 		case "runtype_regression_report":
 			                handleParamsForRunTypeRegressionReport(req,map);
 							break;
+
+		case "runtypesForRelease":
+			                handleParamsForRunTypesForRelease(req,map);
+							break;
+
 
 		default:			console.log("invalid api or api doesn't require parameter handling: "+apiName); 
 							break;

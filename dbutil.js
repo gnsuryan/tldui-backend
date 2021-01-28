@@ -49,6 +49,15 @@ queryDBAndFetchResults = async function (req, res,apiName,paramMap) {
 	console.log(`Executing Query: ${query}`);
 	result = await connection.execute(`${query}`);
 
+	if (result.rows.length == 0) {
+      //send empty result
+      resultObj='query send no rows';
+    } else {
+      //send all results
+      resultObj=result.rows;
+    }
+	
+
   } catch (err) {
     //send error message
     return res.send(err.message);
@@ -63,13 +72,7 @@ queryDBAndFetchResults = async function (req, res,apiName,paramMap) {
       }
     }
     
-	if (result.rows.length == 0) {
-      //send empty result
-      return res.send('query send no rows');
-    } else {
-      //send all results
-      return res.send(result.rows);
-    }
+    return res.send(resultObj);
   }
 }
 

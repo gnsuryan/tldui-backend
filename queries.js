@@ -1,10 +1,13 @@
 systemconfig_sql_query=`SELECT * FROM SUB_SYSTEM_CONFIG WHERE TEAM='<team>' AND RELEASE='<release>' AND RISK_CATEGORY='<riskcategory>'`
 releases_sql_query=`SELECT DISTINCT RELEASE FROM RELEASE_BRANCH ORDER BY 1 DESC`
-runtypes_sql_query=`SELECT DISTINCT RUN_TYPE FROM TEST_RUN ORDER BY 1 DESC`
-buildlabels_sql_query=`SELECT DISTINCT BUILD_LABEL FROM TEST_RUN ORDER BY 1 DESC`
+runtypes_sql_query=`SELECT SEQNO, RUN_TYPE, RELEASE FROM ( SELECT ROWNUM SEQNO, RUN_TYPE, RELEASE FROM ( SELECT DISTINCT BUILD_LABEL, RELEASE, RUN_TYPE FROM TEST_RUN ORDER BY BUILD_LABEL DESC )) ORDER BY SEQNO ASC`
+buildlabels_sql_query=`SELECT DISTINCT BUILD_LABEL, RELEASE FROM TEST_RUN ORDER BY BUILD_LABEL DESC`
 teams_sql_query=`SELECT DISTINCT TEAM FROM TEST_RUN ORDER BY 1 ASC`
 riskcategories_sql_query=`SELECT DISTINCT RISK_CATEGORY FROM TEST_RUN ORDER BY 1 ASC`
-
+runtypesForRelease_sql_query=`SELECT DISTINCT RUN_TYPE FROM TEST_RUN WHERE RELEASE='<release>' ORDER BY 1 DESC`
+allsystemconfig_sql_query=`SELECT * FROM SUB_SYSTEM_CONFIG`
+regression_report_data_sql_query=`SELECT * FROM REGRESSION_REPORT_DATA`
+config_tool_release_mappings_sql_query=`SELECT * FROM CONFIG_TOOL_RELEASE_MAPPINGS`
 
 runtype_regression_report_sql_query=`select
 baseline.run_type baseline_runtype,
@@ -53,7 +56,7 @@ and release='<release>'
 and status = 'COMPLETED'
 and run_iteration=1
 and test_status='SUCCESS'
-UNION
+UNION ALL
 select
 run_type,run_key,team,risk_category,release,status,test_status,test_case_logical_name,test_case_name,test_unit,test_path
 from test_run, test_results
@@ -63,7 +66,7 @@ and release='<release>'
 and status = 'COMPLETED'
 and run_iteration=2
 and test_status='SUCCESS'
-UNION
+UNION ALL
 select
 run_type,run_key,team,risk_category,release,status,test_status,test_case_logical_name,test_case_name,test_unit,test_path
 from test_run, test_results
