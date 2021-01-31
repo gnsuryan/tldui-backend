@@ -64,6 +64,22 @@ app.get('/runtypes/:release', function (req, res) {
   processRequest(req, res,'regression_report_data');
 })
 
+  //get build failure report data
+  app.get('/build_failure_report', function (req, res) {
+  processRequest(req, res,'build_failure_report');
+})
+
+  //get duplicate test case report
+  app.get('/duplicate_test_case_report', function (req, res) {
+  processRequest(req, res,'duplicate_test_case_report');
+})
+
+  //get duplicate test case report
+  app.get('/consecutive_test_failure_report', function (req, res) {
+  processRequest(req, res,'consecutive_test_failure_report');
+})
+
+
 processRequest = async function (req, res,apiName) {
     paramMap = getParamMap(req,apiName);
 	printMap(paramMap);
