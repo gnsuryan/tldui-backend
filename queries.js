@@ -10,7 +10,7 @@ regression_report_data_sql_query=`SELECT * FROM REGRESSION_REPORT_DATA`
 config_tool_release_mappings_sql_query=`SELECT * FROM CONFIG_TOOL_RELEASE_MAPPINGS`
 build_failure_report_sql_query=`SELECT * FROM BUILD_FAILURE_VIEW`
 duplicate_test_case_report_sql_query=`SELECT * FROM DUPLICATE_TESTCASE_VIEW`
-consecutive_test_failure_report_sql_query=`select to_char(consecutive_days) consecutive_days,release,team, run_key,test_unit,test_case_logical_name,test_path,risk_category from
+consecutive_test_failure_report_sql_query=`select to_char(consecutive_days) consecutive_days,team, run_key,test_unit,test_case_logical_name,test_path,release,risk_category from
 (
             Select
             team, release,run_key,risk_category,test_unit,test_case_logical_name,test_path,
@@ -25,12 +25,32 @@ consecutive_test_failure_report_sql_query=`select to_char(consecutive_days) cons
                 and tr.run_type like 'nightly%'
                 and trs.test_status in ('FAILURE','SKIP')
                 and tr.build_label in
-                (select distinct build_label from wlsqa.test_run wtr where wtr.run_type like 'nightly%' order by wtr.build_label desc fetch first 7 rows only)
+                (select distinct build_label from wlsqa.test_run wtr where wtr.release='12.2.1.5.0' and wtr.run_type like 'nightly%' order by wtr.build_label desc fetch first 7 rows only)
                 group by tr.team, tr.release,tr.run_key,tr.risk_category,trs.test_unit,trs.test_case_logical_name,trs.test_path
                 having count(*) > 1
             )
 ) where consecutive_days > 1
-order by consecutive_days desc,release,team,run_key asc`
+union all
+select to_char(consecutive_days) consecutive_days,team, run_key,test_unit,test_case_logical_name,test_path,release,risk_category from
+(
+            Select
+            team, release,run_key,risk_category,test_unit,test_case_logical_name,test_path,
+            wlsqa.get_consecutive_builds_test_fail_ct(release,team,run_key,risk_category,test_unit,test_case_logical_name,test_path,7,FAIL_COUNT)
+            consecutive_days
+            from
+            (
+                select count(*) FAIL_COUNT, tr.team, tr.release,tr.run_key,tr.risk_category,trs.test_unit,trs.test_case_logical_name,trs.test_path
+                from wlsqa.test_run tr, wlsqa.test_results trs
+                where tr.test_run_id = trs.test_run_id
+                and tr.run_iteration=1
+                and tr.run_type like 'nightly%'
+                and trs.test_status in ('FAILURE','SKIP')
+                and tr.build_label in
+                (select distinct build_label from wlsqa.test_run wtr where wtr.release='14.1.2.0.0' and wtr.run_type like 'nightly%' order by wtr.build_label desc fetch first 7 rows only)
+                group by tr.team, tr.release,tr.run_key,tr.risk_category,trs.test_unit,trs.test_case_logical_name,trs.test_path
+                having count(*) > 1
+            )
+) where consecutive_days > 1`
 
 
 runtype_regression_report_sql_query=`select
