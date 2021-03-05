@@ -1,6 +1,12 @@
 systemconfig_sql_query=`SELECT * FROM SUB_SYSTEM_CONFIG WHERE TEAM='<team>' AND RELEASE='<release>' AND RISK_CATEGORY='<riskcategory>'`
 releases_sql_query=`SELECT DISTINCT RELEASE FROM RELEASE_BRANCH ORDER BY 1 DESC`
-runtypes_sql_query=`SELECT SEQNO, RUN_TYPE, RELEASE FROM ( SELECT ROWNUM SEQNO, RUN_TYPE, RELEASE FROM ( SELECT DISTINCT BUILD_LABEL, RELEASE, RUN_TYPE FROM TEST_RUN ORDER BY BUILD_LABEL DESC )) ORDER BY SEQNO ASC`
+runtypes_sql_query=`SELECT SEQNO, RUN_TYPE, TO_CHAR(RUN_INITIATED_DATE,'DD-MON-YYYY') RUN_INITIATED_DATE, RELEASE
+                    FROM ( SELECT ROWNUM SEQNO, RUN_TYPE, RUN_INITIATED_DATE, RELEASE
+                           FROM (	SELECT DISTINCT MIN(RUN_INITIATED_DATE) RUN_INITIATED_DATE, BUILD_LABEL, RELEASE, RUN_TYPE
+                                    FROM TEST_RUN WHERE RUN_INITIATED_DATE IS NOT NULL
+                                    GROUP BY BUILD_LABEL, RELEASE, RUN_TYPE ORDER BY BUILD_LABEL DESC
+                         ))
+                    ORDER BY SEQNO ASC`
 buildlabels_sql_query=`SELECT DISTINCT BUILD_LABEL, RELEASE FROM TEST_RUN ORDER BY BUILD_LABEL DESC`
 teams_sql_query=`SELECT DISTINCT TEAM FROM TEST_RUN ORDER BY 1 ASC`
 riskcategories_sql_query=`SELECT DISTINCT RISK_CATEGORY FROM TEST_RUN ORDER BY 1 ASC`
@@ -147,4 +153,3 @@ and baseline.test_path=iteration1.test_path
 and baseline.test_unit=iteration1.test_unit
 order by iteration3.team,iteration3.run_key,iteration3.risk_category
 `
-
